@@ -12,20 +12,32 @@ module.exports = {
       {
         test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'ts-loader',
-        },
-      },
-    ],
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                '@babel/preset-env',
+                '@babel/preset-react',
+                '@babel/preset-typescript'
+              ]
+            }
+          },
+          {
+            loader: 'ts-loader'
+          }
+        ]
+      }
+    ]
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.tsx', '.ts', '.js']
   },
   devServer: {
     static: {
       directory: path.join(__dirname, 'public'),
     },
     port: 3000,
-    hot: true,
-  },
+    hot: true
+  }
 };
