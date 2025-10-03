@@ -6,27 +6,14 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
+    publicPath: '/'
   },
   module: {
     rules: [
       {
         test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: {
-              presets: [
-                '@babel/preset-env',
-                '@babel/preset-react',
-                '@babel/preset-typescript'
-              ]
-            }
-          },
-          {
-            loader: 'ts-loader'
-          }
-        ]
+        use: ['babel-loader', 'ts-loader']
       }
     ]
   },
@@ -38,6 +25,12 @@ module.exports = {
       directory: path.join(__dirname, 'public'),
     },
     port: 3000,
-    hot: true
+    hot: true,
+    historyApiFallback: true,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+      "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
+    }
   }
 };

@@ -1,0 +1,5 @@
+To install the required HLS.js dependency, run:
+npm install hls.js
+
+Or add to package.json dependencies:
+"hls.js": "^1.4.12"
