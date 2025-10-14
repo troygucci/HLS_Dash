@@ -4,7 +4,7 @@ A React-based dashboard for streaming HLS (HTTP Live Streaming) video content wi
 
 ## Features
 
-- **Multi-stream HLS playback**: Display up to 3 concurrent HLS video streams
+- **Multi-stream HLS playback**: Display up to 6 concurrent HLS video streams
 - **AWS MediaPackage integration**: Configured for AWS MediaPackage endpoints
 - **Responsive grid layout**: Automatically adjusts video layout based on screen size
 - **Cross-browser compatibility**: Uses hls.js for browsers without native HLS support
