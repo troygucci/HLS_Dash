@@ -1,26 +1,41 @@
 # HLS Video Player Dashboard
 
-A React-based dashboard for streaming HLS (HTTP Live Streaming) video content with support for multiple concurrent video streams.
+A React-based dashboard for streaming HLS (HTTP Live Streaming) video content with dynamic AWS MediaPackage integration.
 
 ## Features
 
-- **Multi-stream HLS playback**: Display up to 6 concurrent HLS video streams
-- **AWS MediaPackage integration**: Configured for AWS MediaPackage endpoints
+- **Dynamic HLS stream discovery**: Automatically fetches all MediaPackage channels from your AWS account
+- **Multi-stream playback**: Display up to 6 concurrent HLS video streams
+- **Real-time channel selection**: Dropdown menus populated with actual channel names from AWS
+- **AWS MediaPackage integration**: Direct integration with AWS MediaPackage endpoints
 - **Responsive grid layout**: Automatically adjusts video layout based on screen size
 - **Cross-browser compatibility**: Uses hls.js for browsers without native HLS support
-- **Error handling**: Built-in error logging for stream issues
+- **Error handling**: Built-in error logging for stream and API issues
 
 ## Technology Stack
 
 - **React 18** with TypeScript
 - **hls.js** for HLS video streaming
+- **AWS Lambda** for MediaPackage API integration
+- **AWS API Gateway** for secure API access
+- **AWS SDK v3** for MediaPackage operations
 - **Webpack** for bundling and development server
-- **Babel** for JavaScript transpilation
+
+## AWS Architecture
+
+```
+React App → API Gateway → Lambda Function → MediaPackage API
+```
+
+- **API Gateway**: Provides CORS-enabled REST endpoint
+- **Lambda Function**: Fetches channels and endpoints from MediaPackage
+- **MediaPackage**: Serves HLS video streams
 
 ## Prerequisites
 
 - Node.js (version 14 or higher)
-- npm or yarn package manager
+- AWS Account with MediaPackage channels configured
+- AWS CLI configured (for deployment)
 
 ## Installation
 
@@ -35,6 +50,41 @@ cd my-react-project
 npm install
 ```
 
+## AWS Setup
+
+### 1. Deploy Lambda Function
+```bash
+cd lambda
+npm install
+zip -r mediapackage-lambda.zip .
+```
+
+Deploy using AWS CLI or upload via AWS Console.
+
+### 2. Set up API Gateway
+Follow the instructions in `lambda/api-gateway-gui-setup.md` to create:
+- REST API with `/channels` resource
+- GET method with Lambda proxy integration
+- CORS configuration for browser access
+
+### 3. Required IAM Permissions
+Lambda execution role needs:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "mediapackage:ListChannels",
+        "mediapackage:ListOriginEndpoints"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
 ## Usage
 
 ### Development
@@ -44,7 +94,7 @@ Start the development server:
 npm start
 ```
 
-The application will open in your browser at `http://localhost:8080`.
+The application will open at `http://localhost:8080` and automatically load your MediaPackage channels.
 
 ### Production Build
 
@@ -55,16 +105,11 @@ npm run build
 
 ## Configuration
 
-### HLS Stream URLs
+The app automatically discovers all HLS-enabled MediaPackage channels in your AWS account. No manual URL configuration required.
 
-Update the HLS stream URLs in `src/App.tsx`:
-
-```typescript
-const hlsUrls = [
-  'https://your-mediapackage-endpoint-1.mediapackage.region.amazonaws.com/out/v1/your-channel-id-1/index.m3u8',
-  'https://your-mediapackage-endpoint-2.mediapackage.region.amazonaws.com/out/v1/your-channel-id-2/index.m3u8',
-  'https://your-mediapackage-endpoint-3.mediapackage.region.amazonaws.com/out/v1/your-channel-id-3/index.m3u8'
-];
+To change the AWS region, update the Lambda function in `lambda/index.js`:
+```javascript
+const client = new MediaPackageClient({ region: "your-region" });
 ```
 
 ## Project Structure
@@ -76,32 +121,48 @@ my-react-project/
 ├── src/
 │   ├── App.tsx            # Main application component
 │   └── index.tsx          # Application entry point
-├── package.json           # Dependencies and scripts
+├── lambda/
+│   ├── index.js           # Lambda function code
+│   ├── package.json       # Lambda dependencies
+│   └── *.md              # Setup instructions
+├── package.json           # Frontend dependencies
 ├── tsconfig.json          # TypeScript configuration
 ├── webpack.config.js      # Webpack configuration
 └── README.md             # This file
 ```
 
-## Roadmap
+## Features in Detail
 
-### Planned Features
+### Dynamic Channel Discovery
+- Automatically scans your AWS MediaPackage account
+- Populates dropdowns with actual channel names
+- Updates when new channels are added to MediaPackage
 
-- **CloudWatch Metrics Integration**: 
-  - Stream health monitoring
-  - Viewer analytics
-  - Performance metrics dashboard
-  - Real-time alerts for stream issues
+### Multi-Stream Management
+- 6 independent video players
+- Individual channel selection per player
+- Real-time stream switching
 
-- **Enhanced Dashboard Features**:
-  - Stream status indicators
-  - Quality selection controls
-  - Volume controls and audio management
-  - Full-screen mode support
+### Error Handling
+- API connection status indicators
+- Stream health monitoring
+- Detailed error logging in browser console
 
-- **AWS Integration**:
-  - CloudWatch dashboard widgets
-  - AWS SDK integration for metrics collection
-  - IAM role-based access controls
+## Troubleshooting
+
+### Common Issues
+
+1. **"Loading channels from AWS..." persists**: Check Lambda function logs and IAM permissions
+2. **CORS errors**: Verify API Gateway CORS configuration
+3. **Videos not loading**: Ensure MediaPackage endpoints are accessible
+4. **Empty dropdowns**: Check Lambda function has MediaPackage permissions
+
+### Debugging Steps
+
+1. Check browser developer console for errors
+2. Verify API Gateway endpoint is accessible
+3. Check Lambda function logs in CloudWatch
+4. Confirm MediaPackage channels exist and have HLS endpoints
 
 ## Browser Support
 
@@ -110,27 +171,12 @@ my-react-project/
 - Safari 8+
 - Edge 12+
 
-For browsers without native HLS support, the application automatically falls back to hls.js.
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Video not loading**: Check that HLS URLs are accessible and properly formatted
-2. **CORS errors**: Ensure your MediaPackage endpoints have proper CORS configuration
-3. **Build errors**: Verify all dependencies are installed with `npm install`
-
-### Error Logging
-
-The application logs HLS errors to the browser console. Check the developer tools for detailed error information.
-
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+3. Test with your AWS MediaPackage setup
+4. Submit a pull request
 
 ## License
 
@@ -138,4 +184,9 @@ The application logs HLS errors to the browser console. Check the developer tool
 
 ## Support
 
-For issues and questions, please [create an issue](link-to-issues) in the repository.
+For AWS-related issues, check:
+- Lambda function logs in CloudWatch
+- API Gateway execution logs
+- MediaPackage channel status
+
+For application issues, check the browser developer console for detailed error information.
